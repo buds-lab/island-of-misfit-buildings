@@ -1,20 +1,32 @@
-import inchlib_clust #API documentation https://openscreen.cz/software/inchlib/inchlib_clust_doc
+import inchlib_clust # API documentation https://openscreen.cz/software/inchlib/inchlib_clust_doc
 import pandas as pd
 
 #instantiate the Cluster object
 c = inchlib_clust.Cluster()
 
-# create an index for each Building since the API does not handle strings
-df_original_dataset = pd.read_csv('ALLFEATURES.CSV')
+# load original dataset and made a copy of it in order to modify building name and id feature
+df_original_dataset = pd.read_csv('data/ALLFEATURES.CSV')
+df_modified_dataset = df_original_dataset.copy()
 
+# delete the building name feature (first column)
+del df_modified_dataset['Unnamed: 0'] # the column originally had no header
 
-d_modified_dataset
+# insert index as building_ID as first feature
+df_modified_dataset.insert(0, 'building_ID', df_modified_dataset.index)
+
+# find missing values, if any
+if (df_modified_dataset.isnull().values.any()):
+	null_columns = df_modified_dataset.columns[df_modified_dataset.isnull().any()]
+	# find number of missing values per column
+	print df_modified_dataset[null_columns].isnull().sum()
+	# find rows with missing values
+	print df_modified_dataset[df_modified_dataset.isnull().any(axis=1)][null_columns].head()
 
 # saved the transformed dataset
-d_modified_dataset.to_csv('ALLFEATURES_index.csv')
+df_modified_dataset.to_csv('data/ALLFEATURES_index.csv', index=False)
 
 # read csv data file with specified delimiter, also specify whether there is a header row, the type of the data (numeric/binary) and the string representation of missing/unknown values
-c.read_csv(filename="ALLFEATURES_index.csv", delimiter=",", header=True, missing_value=False, datatype="numeric")
+print c.read_csv(filename="data/ALLFEATURES_index.csv", delimiter=",", header=True, missing_value="", datatype="numeric")
 # c.read_data(data, header=bool, missing_value=str/False, datatype="numeric/binary") use read_data() for list of lists instead of a data file
 
 # normalize data to (0,1) scale, but after clustering write the original data to the heatmap
@@ -30,7 +42,7 @@ d = inchlib_clust.Dendrogram(c)
 d.create_cluster_heatmap(compress=False, compressed_value="median", write_data=True) # tweak compress
 
 # read metadata file with specified delimiter, also specify whether there is a header row
-d.add_metadata_from_file(metadata_file="ALLFEATURES_meta_labelled.csv", delimiter=",", header=True, metadata_compressed_value="frequency")
+d.add_metadata_from_file(metadata_file="data/ALLFEATURES_meta_labelled.csv", delimiter=",", header=True, metadata_compressed_value="frequency")
 
 # read column metadata file with specified delimiter, also specify whether there is a 'header' column
 # d.add_column_metadata_from_file(column_metadata_file="/path/to/file.csv", delimiter=",", header=bool)
