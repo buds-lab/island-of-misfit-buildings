@@ -1,0 +1,27 @@
+<html> 
+	<head>
+		<script src="http://openscreen.cz/software/inchlib/static/js/jquery-2.0.3.min.js"></script>
+		<script src="http://openscreen.cz/software/inchlib/static/js/kinetic-v5.1.0.min.js"></script>
+		<script src="http://openscreen.cz/software/inchlib/static/js/inchlib-1.2.0.min.js"></script>
+		<script>
+		$(document).ready(function() {
+            var inchlib = new InCHlib({
+                target: "inchlib",
+                metadata: false, 
+                column_metadata: false,
+                max_height: 1200,
+                width: 1600,
+                heatmap_colors: "Greens",
+                metadata_colors: "Reds",
+            });
+
+            inchlib.read_data_from_file("clusteredBDG.json");
+            inchlib.draw();
+        });
+		</script>
+	</head>
+
+	<body>
+		<div id="inchlib"></div>
+	</body>
+</html> 
