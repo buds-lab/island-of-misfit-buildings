@@ -21,7 +21,6 @@ c.read_csv(filename="data/ALLFEATURES.CSV", delimiter=",", header=True, missing_
 
 # normalize data to (0,1) scale, but after clustering write the original data to the heatmap
 c.normalize_data(feature_range=(0,1), write_original=True)
-
 # cluster data according to the parameters
 c.cluster_data(row_distance="euclidean", row_linkage="single", axis="row", column_distance="euclidean", column_linkage="ward")
 
@@ -42,5 +41,7 @@ d.create_cluster_heatmap(compress=False, compressed_value="median", write_data=T
 
 # export the cluster heatmap on the standard output or to the file if filename specified
 d.export_cluster_heatmap_as_json("clusteredBDG.json")
+# d.export_cluster_heatmap_as_json("/var/www/html/clusteredBDG.json") # uncomment when running in EC2 solution
+
 # function exports simple HTML page with embedded cluster heatmap and dependencies to given directory 
-d.export_cluster_heatmap_as_html() # currently not working, needs to fix the localhost issue
+# d.export_cluster_heatmap_as_html() # currently not working, needs to fix the localhost issue # currently doesn't work
