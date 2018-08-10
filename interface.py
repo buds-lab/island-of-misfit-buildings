@@ -1,5 +1,12 @@
-import inchlib_clust # API documentation https://openscreen.cz/software/inchlib/inchlib_clust_doc
+# API documentation https://openscreen.cz/software/inchlib/inchlib_clust_doc
+
+import inchlib_clust
 import pandas as pd
+
+# boolean variable to toggle using less features
+feature_subset = 1
+# choose the top N high importance features
+num_features = 10 # available number of top importance features: 10, 15, 20, 25, 50, 75, 100, 125, 150, 175, 200
 
 #instantiate the Cluster object
 c = inchlib_clust.Cluster()
@@ -15,9 +22,25 @@ if (df_original_dataset.isnull().values.any()):
 	# find rows with missing values
 	print df_original_dataset[df_original_dataset.isnull().any(axis=1)][null_columns].head()
 
-# read csv data file with specified delimiter, also specify whether there is a header row, the type of the data (numeric/binary) and the string representation of missing/unknown values
-c.read_csv(filename="data/ALLFEATURES.CSV", delimiter=",", header=True, missing_value="", datatype="numeric")
-# c.read_data(data, header=bool, missing_value=str/False, datatype="numeric/binary") use read_data() for list of lists instead of a data file
+# if boolean variable is true, continue to slice the original dataset
+if feature_subset:
+	# load file
+	file_name = "jupyter-notebooks/" + str(num_features) + "_features.txt"
+	input_file = open(file_name, "r")
+	# convert file into list by first removing the end of line character of each line and converting each value to int
+	selected_indeces = [int(i.strip("\n")) for i in input_file.readlines()]
+	# retain only the columns which indeces are in the .txt file
+	df_sliced_dataset = df_original_dataset.iloc[:, selected_indeces]
+	# transform dataframe into list of lists with header
+	header = df_sliced_dataset.columns.values.tolist()
+	sliced_dataset_list = df_sliced_dataset.values.tolist()
+	sliced_dataset_list.insert(0,header)	
+	# load the data into the cluster object
+	c.read_data(sliced_dataset_list, header=True, missing_value="", datatype="numeric")
+else:
+	# read csv data file with specified delimiter, also specify whether there is a header row, the type of the data (numeric/binary) and the string representation of missing/unknown values
+	c.read_csv(filename="data/ALLFEATURES.CSV", delimiter=",", header=True, missing_value="", datatype="numeric")
+	# c.read_data(data, header=bool, missing_value=str/False, datatype="numeric/binary") use read_data() for list of lists instead of a data file
 
 # normalize data to (0,1) scale, but after clustering write the original data to the heatmap
 c.normalize_data(feature_range=(0,1), write_original=True)
