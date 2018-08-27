@@ -14,6 +14,8 @@ c = inchlib_clust.Cluster()
 # load original dataset
 df_original_dataset = pd.read_csv('data/ALLFEATURES.CSV')
 
+# find labels
+
 # find missing values, if any, and display findings
 if (df_original_dataset.isnull().values.any()):
 	null_columns = df_original_dataset.columns[df_original_dataset.isnull().any()]
@@ -30,13 +32,17 @@ if feature_subset:
 	# convert file into list by first removing the end of line character of each line and converting each value to int
 	selected_indeces = [int(i.strip("\n")) for i in input_file.readlines()]
 	# retain only the columns which indeces are in the .txt file
-	df_sliced_dataset = df_original_dataset.iloc[:, selected_indeces]
+	df_sliced_dataset = df_original_dataset.iloc[:, selected_indeces] # also keep the ids
+	# keep the ids
+	df_sliced_dataset.insert(0, "uid", df_original_dataset.iloc[:, 0])
 	# transform dataframe into list of lists with header
 	header = df_sliced_dataset.columns.values.tolist()
+	print header 
 	sliced_dataset_list = df_sliced_dataset.values.tolist()
-	sliced_dataset_list.insert(0,header)	
+	sliced_dataset_list.insert(0,header)
 	# load the data into the cluster object
 	c.read_data(sliced_dataset_list, header=True, missing_value="", datatype="numeric")
+	# see which features remained
 else:
 	# read csv data file with specified delimiter, also specify whether there is a header row, the type of the data (numeric/binary) and the string representation of missing/unknown values
 	c.read_csv(filename="data/ALLFEATURES.CSV", delimiter=",", header=True, missing_value="", datatype="numeric")
@@ -45,7 +51,7 @@ else:
 # normalize data to (0,1) scale, but after clustering write the original data to the heatmap
 c.normalize_data(feature_range=(0,1), write_original=True)
 # cluster data according to the parameters
-c.cluster_data(row_distance="euclidean", row_linkage="single", axis="row", column_distance="euclidean", column_linkage="ward")
+c.cluster_data(row_distance="euclidean", row_linkage="centroid", axis="row", column_distance="euclidean", column_linkage="ward")
 
 # instantiate the Dendrogram class with the Cluster instance as an input
 d = inchlib_clust.Dendrogram(c)
@@ -57,6 +63,10 @@ d.create_cluster_heatmap(compress=False, compressed_value="median", write_data=T
 # Contains metadata (i.e., additional information, such as, e.g., class membership, about individual objects) can be detailed in 
 # metadata_compressed_value as frequency/median/mean)
 # d.add_metadata_from_file(metadata_file="/path/to/file.csv", delimiter=",", header=True, metadata_compressed_value="frequency")
+metadata = pd.read_csv('data/meta_open.CSV')
+metadata_sliced = metadata[['uid', 'primaryspaceuse_abbrev']]
+metadata_sliced_list = 	metadata_sliced.values.tolist()
+d.add_metadata(metadata_sliced_list, header=True, metadata_compressed_value='frequency')
 
 # read column metadata file with specified delimiter, also specify whether there is a 'header' column
 # Contains column metadata (i.e., additional information, such as, e.g., class membership, about individual columns)
