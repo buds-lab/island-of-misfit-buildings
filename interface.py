@@ -6,7 +6,7 @@ import pandas as pd
 # boolean variable to toggle using less features
 feature_subset = 1
 # choose the top N high importance features
-num_features = 20 # available number of top importance features: 10, 15, 20, 25, 50, 75, 100, 125, 150, 175, 200
+num_features = 10 # available number of top importance features: 10, 15, 20, 25, 50, 75, 100, 125, 150, 175, 200
 
 #instantiate the Cluster object
 c = inchlib_clust.Cluster()
@@ -29,6 +29,7 @@ if (df_original_dataset.isnull().values.any()):
 # if boolean variable is true, continue to slice the original dataset
 if feature_subset:
 	# load file
+	# _features_sub.txt files are feature sets without 'motif' features
 	file_name = "jupyter-notebooks/" + str(num_features) + "_features_sub.txt"
 	input_file = open(file_name, "r")
 	# convert file into list by first removing the end of line character of each line and converting each value to int
@@ -53,7 +54,7 @@ else:
 # normalize data to (0,1) scale, but after clustering write the original data to the heatmap
 c.normalize_data(feature_range=(0,1), write_original=True)
 # cluster data according to the parameters
-c.cluster_data(row_distance="euclidean", row_linkage="centroid", axis="row", column_distance="euclidean", column_linkage="ward")
+c.cluster_data(row_distance="euclidean", row_linkage="centroid", axis="row", column_distance="euclidean", column_linkage="centroid")
 
 # instantiate the Dendrogram class with the Cluster instance as an input
 d = inchlib_clust.Dendrogram(c)
@@ -65,8 +66,13 @@ d.create_cluster_heatmap(compress=False, compressed_value="median", write_data=T
 # Contains metadata (i.e., additional information, such as, e.g., class membership, about individual objects) can be detailed in 
 # metadata_compressed_value as frequency/median/mean)
 # d.add_metadata_from_file(metadata_file="/path/to/file.csv", delimiter=",", header=True, metadata_compressed_value="frequency")
+<<<<<<< HEAD
 metadata = pd.read_csv('data/meta_open.CSV')
 metadata_sliced = metadata[['uid', 'primarysrpaceuse_abbrev']]
+=======
+metadata = pd.read_csv('data/meta_open.csv')
+metadata_sliced = metadata[['uid', 'primaryspaceuse_abbrev']]
+>>>>>>> 3499022f1acf299a4522041ec303bd1a6c371bb0
 metadata_sliced_list = 	metadata_sliced.values.tolist()
 header_metadata = metadata_sliced.columns.values.tolist()
 metadata_sliced_list.insert(0, header_metadata ) # insert metadata header
