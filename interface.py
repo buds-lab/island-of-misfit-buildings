@@ -66,7 +66,7 @@ d.create_cluster_heatmap(compress=False, compressed_value="median", write_data=T
 # metadata_compressed_value as frequency/median/mean)
 # d.add_metadata_from_file(metadata_file="/path/to/file.csv", delimiter=",", header=True, metadata_compressed_value="frequency")
 metadata = pd.read_csv('data/meta_open.CSV')
-metadata_sliced = metadata[['uid', 'primaryspaceuse_abbrev']]
+metadata_sliced = metadata[['uid', 'primarysrpaceuse_abbrev']]
 metadata_sliced_list = 	metadata_sliced.values.tolist()
 header_metadata = metadata_sliced.columns.values.tolist()
 metadata_sliced_list.insert(0, header_metadata ) # insert metadata header
