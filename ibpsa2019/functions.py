@@ -1,5 +1,6 @@
 # Set of functions needed for experiments completion
 from datetime import datetime, timedelta
+from sklearn import linear_model    
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -104,12 +105,14 @@ Currently the following functions are supported:
 - Median
 - Linear Regression
 
-And the currently resampling:
+And the currently resolution:
 - Daily
+
+The name parameter allow us to save the resulting csv with a more comprehensive title
 """
-def doAggregation(function, dataframe, resolution):
+def doAggregation(dataframe, context, function, resolution, name):
     df_load_curves = pd.DataFrame() # dataframe that will hold all load curves
-    
+
     # resample based on parameter
     if (resolution == 'day'):
         availableSamples = (dataframe.resample('1D').asfreq()).index # get list of timestamps group by day
@@ -150,12 +153,23 @@ def doAggregation(function, dataframe, resolution):
 
         # elif function == 'linear':
             # TODO: perform linear regresion based on 2d matrix
+            # use entire daily meter data for each building
+            # then perform regresion in entire time series for the building
+            # generate a 2d matrix of the same shape as df_sampleReadings
+            # X = 
+            # lm = linear_model.LinearRegression()
+            # lm.fit(df_sampledReadings)
+            # load_curve = lm.predict(df_sampledReadings)
+            # print(lm.score(df_sampledReadings))
+
+            
+
         else:
             print("Please choose a valid context")
             exit()
 
         ####################################################################
-        # # TODO: coding is for plotting purposes
+        # TODO: coding is for plotting purposes
         # print (df_sampledReadings)
         # plt.figure(figsize=(18,10))
         # x_axis = range(0, len(df_sampledReadings.columns))
@@ -177,8 +191,18 @@ def doAggregation(function, dataframe, resolution):
         
         # end of for loop for one column
 
-    df_load_curves = df_load_curves.T # rotate the final dataframe
-    # save the file and return the dataframe
-    df_load_curves.to_csv("data/loadCurves_{}_{}.csv".format(resolution, function))
-    return df_load_curves
+    # replace NaN's with 0    
+    df_load_curves = df_load_curves.replace(0.0, np.nan)
+    # drop rows with all nan values
+    df_load_curves = df_load_curves.dropna(axis=1, how='all') 
+    
+    # particular to the DC dataset
+    if name =='DC':    
+        # drop columns with more than 5 nan values (seems to be a sweet spot)
+        df_load_curves = df_load_curves.dropna(thresh=len(df_load_curves) - 5, axis=1)
 
+    df_load_curves = df_load_curves.T # rotate the final dataframe
+    
+    # save the file and return the dataframe
+    df_load_curves.to_csv("data/{}_loadCurves_{}_{}_{}.csv".format(name, context, resolution, function))
+    return df_load_curves

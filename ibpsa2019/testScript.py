@@ -25,8 +25,12 @@ df_weekend_DC = func.getContext('weekend', df_dc, 'DC')
 # LOAD CURVES AGGREGATION
 ################################################################################
 
-df_average_weekday_BDG = func.doAggregation('average', df_weekday_BDG, 'day')
+# df_average_weekday_BDG = func.doAggregation(df_weekday_BDG, 'average', 'day', 'BDG')
+# df_median_weekday_BDG = func.doAggregation(df_weekday_BDG, 'median', 'day', 'BDG')
+df_median_weekday_BDG = func.doAggregation(df_weekday_BDG, 'linear', 'day', 'BDG')
 
-df_median_weekday_BDG = func.doAggregation('median', df_weekday_BDG, 'day')
+# df_average_weekday_DC = func.doAggregation(df_weekday_DC, 'average', 'day', 'DC')
+# df_median_weekday_DC = func.doAggregation(df_weekend_DC, 'median', 'day', 'DC')
+# df_median_weekday_DC = func.doAggregation(df_weekend_DC, 'linear', 'day', 'Dc')
 
 
