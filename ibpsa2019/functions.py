@@ -1,10 +1,20 @@
 # Set of functions needed for experiments completion
+
+# Built-in libraries
 from datetime import datetime, timedelta
-from sklearn import linear_model    
-import matplotlib.pyplot as plt
+import math
+
+# NumPy, SciPy and Pandas
 import pandas as pd
 import numpy as np
-import math
+
+# Scikit-Learn
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
+
+# Matplotlib
+import matplotlib.pyplot as plt
 
 
 """
@@ -103,7 +113,7 @@ Function that calculates a load profile curve, for each building on a dataframe,
 Currently the following functions are supported:
 - Average
 - Median
-- Linear Regression
+- Regression
 
 And the currently resolution:
 - Daily
@@ -124,7 +134,7 @@ def doAggregation(dataframe, context, function, resolution, name):
     # iterate through all buildings (column)
     for column in range(len(dataframe.columns)):
         df_sampledReadings = pd.DataFrame() # dataframe to hold new samples for a column
-        currentRow = pd.DataFrame(dataframe.iloc[:, column])
+        currentColumn = pd.DataFrame(dataframe.iloc[:, column])
         
         # iterate through each day
         for timestamp in availableSamples:
@@ -132,7 +142,7 @@ def doAggregation(dataframe, context, function, resolution, name):
             start = timestamp
             end = timestamp + timedelta(hours=delta)
             # get meter data from only this resolution
-            df_reading = currentRow[(currentRow.index >= start) & (currentRow.index <= end)]
+            df_reading = currentColumn[(currentColumn.index >= start) & (currentColumn.index <= end)]
             # ignore index since they are unique timestamps
             df_reading.reset_index(drop=True, inplace=True)         
             # append new sample as columns
@@ -142,27 +152,67 @@ def doAggregation(dataframe, context, function, resolution, name):
         df_sampledReadings.dropna(axis=1, how='all', inplace=True)
         df_sampledReadings = df_sampledReadings.T # transpose it so it's easier to see and operate
         # up to this point, the matrix above has the shape nxm where is the number of instances and m is the number of readings
+    
+        # if any NaN prevailed
+        df_sampledReadings.fillna(value=0, inplace=True) 
 
         # calculate load curve based on function
         if function == 'average':
             load_curve = np.mean(df_sampledReadings, axis = 0)
 
         elif function =='median':
-            df_sampledReadings.fillna(value=0, inplace=True) # median will not work with NaN
             load_curve = np.median(df_sampledReadings, axis = 0)
-
-        # elif function == 'linear':
-            # TODO: perform linear regresion based on 2d matrix
-            # use entire daily meter data for each building
-            # then perform regresion in entire time series for the building
-            # generate a 2d matrix of the same shape as df_sampleReadings
-            # X = 
-            # lm = linear_model.LinearRegression()
-            # lm.fit(df_sampledReadings)
-            # load_curve = lm.predict(df_sampledReadings)
-            # print(lm.score(df_sampledReadings))
-
             
+        elif function == 'regression':
+            # 1. Generate one single time series for the entire building
+            df_one_ts = pd.DataFrame() # empty data frame to hold complete time series
+            df_trans = df_sampledReadings.T
+            # iterate through each day worth of readings
+            for column in range(len(df_trans.columns)):
+                currentColumn = pd.DataFrame(df_trans.iloc[:, column])
+                df_one_ts = df_one_ts.append(currentColumn, ignore_index=True)
+            # rename variables            
+            x_values = df_one_ts.index.values.reshape(-1, 1)
+            y_values = df_one_ts.values
+            
+            # 2. Perform polynomial regressions on the single time series
+            degrees = range(1, 21)
+            base_model = linear_model.LinearRegression().fit(x_values, y_values)
+            base_curve = base_model.predict(x_values)
+            rmse = np.sqrt(mean_squared_error(y_values, base_curve))
+            load_curve = base_curve
+
+            ####################################################################
+            # # TODO: multiple reg plotting
+            # plt.figure(figsize=(18,10))
+            # plt.scatter(x_values, y_values)
+            ####################################################################
+
+            for d in degrees: # fit a curve for each degree
+                polynomial_features= PolynomialFeatures(degree=d)
+                x_poly = polynomial_features.fit_transform(x_values)    
+                poly_model = linear_model.LinearRegression()
+                poly_model.fit(x_poly, y_values)
+                poly_curve = poly_model.predict(x_poly)
+                rmse_d = np.sqrt(mean_squared_error(y_values,poly_curve))
+
+                # print(rmse_d)
+                
+                # keep the polynomial with lowest RSME
+                if rmse_d < rmse :
+                    rmse = rmse_d
+                    load_curve = poly_curve
+                    
+
+                ####################################################################
+            #     # TODO: multiple reg plotting
+            #     plt.plot(x_values, poly_curve, "k-")
+            # plt.plot(x_values, load_curve, "r-")
+            # plt.title("Load Profiles and red representative curve based on {}".format(function))        
+            # plt.show()
+            # print(rmse)
+            # exit()
+            ####################################################################
 
         else:
             print("Please choose a valid context")
@@ -170,14 +220,15 @@ def doAggregation(dataframe, context, function, resolution, name):
 
         ####################################################################
         # TODO: coding is for plotting purposes
-        # print (df_sampledReadings)
         # plt.figure(figsize=(18,10))
         # x_axis = range(0, len(df_sampledReadings.columns))
         # for _, curve in df_sampledReadings.iterrows():
-        #     plt.plot(x_axis, curve, "k-", alpha=.2)
-        # plt.plot(x_axis, load_curve, "r-")
+        #     plt.plot(curve, "k-", alpha=.2)
+        # plt.plot(load_curve, "r-")
         # plt.title("Load Profiles and red representative curve based on {}".format(function))        
         # plt.show()
+        # print(X)
+        # exit()
         ####################################################################
 
         # turn into one column dataframe for easier manipulation
@@ -198,9 +249,10 @@ def doAggregation(dataframe, context, function, resolution, name):
     
     # particular to the DC dataset
     if name =='DC':    
-        # drop columns with more than 5 nan values (seems to be a sweet spot)
-        df_load_curves = df_load_curves.dropna(thresh=len(df_load_curves) - 5, axis=1)
+        # drop columns with more than 4 nan values (seems to be a sweet spot)
+        df_load_curves = df_load_curves.dropna(thresh=len(df_load_curves) - 4, axis=1)
 
+    df_load_curves.fillna(value=0, inplace=True) 
     df_load_curves = df_load_curves.T # rotate the final dataframe
     
     # save the file and return the dataframe
