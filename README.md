@@ -9,10 +9,11 @@ A project focused on clustering different buildings and identifying outliner wit
 - [Context Extraction](Preprocessing/context_extraction.ipynb): Generate resampled datasets filtering observations based on the specify context.
 - [Load Curve Generation](Preprocessing/load_cuve_generation.ipynb): Based on the given aggregation function, generate one load curve for each building.
 
-The naming format for all generated files is `DatasetName_Context_LoadCurveFunction_TypeOfFile.extension`. Each section is decribed as follows:
+The naming format for all generated files is `DatasetName_Context_LoadCurveFunction_Algorithm_TypeOfFile.extension`. Each section is decribed as follows:
 - DatasetName: `BDG` for the Building Genome Dataset and `DGS` for the Washington Dataset
 - Context: Currently implemented `weekday`, `weekend`, `fullweek`
 - LoadCurveFunction: Aggregation function used. Currently implemented `average`, `median`
+- Algorithm: Clustering algorithm used. Currently implemented `kshape`
 - TypeOfFile: The type of data that is stored in this file, most of the times is `dataset`
 - Extension: Usually `.csv` but also `.png` or `pkl`
 
@@ -24,7 +25,7 @@ The naming format for all generated files is `DatasetName_Context_LoadCurveFunct
 TODO
 
 ## Experiments
-- [Experiments](Experiments/ExperimentPlayground.ipyng): Sandbox to run all possible combinations of datasets, contexts, and load curve functions as experiments for clustering
+- [Experiments](Experiments/ExperimentPlayground.ipynb): Sandbox to run all possible combinations of datasets, contexts, and load curve functions as experiments for clustering
 <!-- ---
 Currently, the interactive Cluster Heatmap Library (InCHlib) implementation on buildings' sensor data is running in the following server
 
