@@ -1,4 +1,4 @@
-# sensor-clusterer
+# The island of misfit buildings: Detecting mixed-use or primary-use-type outliers using load shape clustering
 
 A project focused on clustering different buildings and identifying outliner within them from raw whole building data.
 
